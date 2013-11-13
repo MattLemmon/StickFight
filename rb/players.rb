@@ -326,6 +326,8 @@ class Referee < Chingu::GameObject
   attr_reader :direction
 
   def setup
+    self.factor = 0.7
+    self.factor_x = 0.7
 #    super
     @image = Gosu::Image["players/referee.png"]
 #    @picture2 = Gosu::Image["players/player_blink.png"]
@@ -336,10 +338,9 @@ class Referee < Chingu::GameObject
     @growth = 1.01
     @grow_count = 0
     @direction = 1
-    @eyes = Eyes.new self
+    @eyes = Eyes2.new self
     cache_bounding_circle
   end
-
   def wobble
     if @grow_count == 0
 #      @grow_count = 0
@@ -347,7 +348,6 @@ class Referee < Chingu::GameObject
       @growing = true
     end
   end
-
   def grow_counter
     @grow_count += @grow
     if @grow_count >= 8
@@ -355,12 +355,11 @@ class Referee < Chingu::GameObject
       @growth = 0.95
     end
     if @grow_count == 0
-      self.factor_x = 1.0
+      self.factor_x = 0.7
       @grow = 1
       @growing = false
     end
   end
-
   def go_left
     @x -= @speed
   end
@@ -377,7 +376,18 @@ class Referee < Chingu::GameObject
   def update_face
     @eyes.update
   end
-
+  def seek_opponent(opponents)
+    closest = opponents.first
+    dist = distance(closest.x, closest.y, @x, @y)
+    opponents.each do |tar|
+      new_dist = distance(tar.x, tar.y, @x, @y)
+      if new_dist < dist
+        closest = tar
+        dist = new_dist
+      end
+    end
+    return closest
+  end
   def update
     if @growing == true
       grow_counter
@@ -426,7 +436,8 @@ class Player1 < Chingu::GameObject
   traits :velocity, :collision_detection
   trait :bounding_box, :debug => DEBUG
   trait :timer
-  attr_reader :direction, :mist, :creeping
+  attr_reader :direction, :mist, :selected, :health
+#  attr_accessor :health, :attacking
 
   def initialize(options)
     super
@@ -434,7 +445,8 @@ class Player1 < Chingu::GameObject
     cache_bounding_box
   end
   def setup
-    self.factor_x = -1
+    self.factor = 0.7
+    self.factor_x = -0.7
     @creeping = false
     @stun = false
     @mist = false
@@ -443,10 +455,104 @@ class Player1 < Chingu::GameObject
     @squeeze_y = 1.0
     @hit_time = Gosu.milliseconds - 3000
     @wobble_resistance = 0.008
-    @eyes = Eyes.new self
+    @eyes = Eyes1.new self
     @mouth = Mouth.new self
+    @stick = Stick1.new(:x=>@x-20,:y=>@y,:zorder=>Zorder::Face)
+    @health_bar = HealthBar.new self
+
+    @health = $start_health1
+    @selected = false
+    @going = false
+    @attacking = false
 #    @last_x, @last_y = @x, @y
   end
+  def select
+    @selected_box = SelectedBox.create(:x=>@x,:y=>@y,:zorder=>10)
+    @selected = true
+  end
+  def deselect
+    if @selected_box != nil
+      @selected_box.destroy
+      @selected = false
+    end
+  end
+  def going
+    @going = true
+    go_to_destination
+  end
+  def ungoing
+    @going = false
+  end
+  def go_to_destination
+    if @going == true
+      if @selected == true
+        if @x < $destination_x
+          go_right
+        end
+        if @x > $destination_x
+          go_left
+        end
+        if @y < $destination_y
+          go_down
+        end
+        if @y > $destination_y
+          go_up
+        end
+        after(10) {
+          if @x - $destination_x < 10 && @x - $destination_x > -10 && @y - $destination_y < 10 && @y - $destination_y > -10
+            puts "arrived at destination"
+            @going = false
+          else
+            go_to_destination
+          end
+        }
+      end
+    end
+  end
+  def preattack
+    @attacking = true
+  end
+  def attack(opponent)
+#    @attacking = true
+    if @attacking == true
+#      if rand(50) == 1
+        puts "attack"
+        wiggle_stick
+        opponent.damage
+#      end
+#      attack
+    end
+  end
+  def unattack
+    @attacking = false
+  end
+
+  def seek_opponent(opponents)
+    closest = opponents.first
+    dist = distance(closest.x, closest.y, @x, @y)
+    opponents.each do |tar|
+      new_dist = distance(tar.x, tar.y, @x, @y)
+      if new_dist < dist
+        closest = tar
+        dist = new_dist
+      end
+    end
+    return closest
+  end
+#    closest = seek_opponent(preys)
+#    if distance(closest.x, closest.y, @x, @y) < 5
+#      closest.eaten = true
+#    end
+    # take the angle from the hunter to the prey and run along that path
+#    accelerate(angle(@x, @y, closest.x, closest.y))
+#    move
+
+#    if !@preys.empty?
+#      @hunters.each {|h| h.update(@preys)}
+#      @preys.reject! {|p| !p.update(@hunters)}
+#    end
+
+
   def go_left
     @velocity_x = -@speed
   end
@@ -505,15 +611,44 @@ class Player1 < Chingu::GameObject
     after(500) {Smog.create(:x=>@x,:y=>@y)}
     after(600) {Smog.create(:x=>@x,:y=>@y)}
   end
-
+  def damage
+    puts "damage"
+    @health -= 1
+    self.x += 10
+    after(30) { self.x -= 20 }
+    after(60) { self.x += 20 }
+    after(90) { self.x -= 10 }
+    after(120) { self.x += 10 }
+    after(150) { self.x -= 10 }
+    after(180) { self.x -= 10 }
+    after(210) { self.x += 10 }
+#    after(10) { self.y += 5 }
+  end
+  def update_health_bar
+    @health_bar.update
+  end
   def update_face
     @eyes.update
     @mouth.update
   end
-
+  def update_box
+    if @selected_box != nil
+      @selected_box.x = @x
+      @selected_box.y = @y
+    end
+  end
+  def update_stick
+    @stick.x = @x - 20
+    @stick.y = @y
+    @stick.update
+  end
+  def wiggle_stick
+    @stick.wiggle
+    after(160){@stick.unwiggle}
+  end
   def update
-    self.factor_y = @squeeze_y
-    self.factor_x = hit_wobble_factor * @direction
+    self.factor_y *= @squeeze_y
+    self.factor_x = 0.7 * hit_wobble_factor * @direction
     @squeeze_y = 1.0
     if @stun == true
       @speed = 0
@@ -530,7 +665,9 @@ class Player1 < Chingu::GameObject
     @velocity_x *= 0.25
     @velocity_y *= 0.25
     update_face
-
+    update_box
+    update_stick
+    update_health_bar
     # Particles
     if @mist == false
       if @velocity_x < 0.1 && @velocity_x > -0.1 && @velocity_y < 0.1 && @velocity_y > -0.1
@@ -554,7 +691,7 @@ class Player1 < Chingu::GameObject
             :mode => :additive,
             :fade_rate => -10,
 #            :angle => @angle,
-            :factor => 1.7,
+            :factor => 1.2,
             :velocity_x => @part_vel_x,
             :velocity_y => @part_vel_y,
             :zorder => Zorder::Main_Character_Particles)
@@ -574,6 +711,8 @@ class Player1 < Chingu::GameObject
       super
       @eyes.draw
       @mouth.draw
+      @stick.draw
+      @health_bar.draw
     end
   end
 end
@@ -586,7 +725,8 @@ class Player2 < Chingu::GameObject
   traits :velocity, :collision_detection
   trait :bounding_box, :debug => DEBUG
   trait :timer
-  attr_reader :direction, :mist, :creeping
+  attr_reader :direction, :mist, :creeping, :health
+#  attr_accessor :attacking, :color #, :health
 
   def initialize(options)
     super
@@ -595,6 +735,7 @@ class Player2 < Chingu::GameObject
     cache_bounding_box
   end
   def setup
+    self.factor = 0.7
     @creeping = false
     @stun = false
     @mist = false
@@ -603,10 +744,58 @@ class Player2 < Chingu::GameObject
     @squeeze_y = 1.0
     @hit_time = Gosu.milliseconds - 3000
     @wobble_resistance = 0.008
-    @eyes = Eyes.new self
+    @eyes = Eyes2.new self
     @mouth = Mouth.new self
+    @health_bar = HealthBar.new self
+
+    @health = $start_health2
+    @selected = false
 #    @last_x, @last_y = @x, @y
   end
+  def select
+    @selected_box = SelectedBox.create(:x=>@x,:y=>@y,:zorder=>10)
+    @selected = true
+  end
+  def deselect
+    if @selected_box != nil
+      @selected_box.destroy
+      @selected = false
+    end
+  end
+  def going
+    @going = true
+    go_to_destination
+  end
+  def ungoing
+    @going = false
+  end
+  def go_to_destination
+    if @going == true
+      if @selected == true
+        if @x < $destination_x
+          go_right
+        end
+        if @x > $destination_x
+          go_left
+        end
+        if @y < $destination_y
+          go_down
+        end
+        if @y > $destination_y
+          go_up
+        end
+        after(10) {
+          if @x - $destination_x < 10 && @x - $destination_x > -10 && @y - $destination_y < 10 && @y - $destination_y > -10
+            puts "arrived at destination"
+            @going = false
+          else
+            go_to_destination
+          end
+        }
+      end
+    end
+  end
+
   def walk_wobble_factor  #sin curve between 1..0.8 at 5hz
     1 - (Math.sin(Gosu.milliseconds/(Math::PI*10))+1)/10.0
   end
@@ -617,6 +806,20 @@ class Player2 < Chingu::GameObject
   def wobble
     @hit_time = Gosu.milliseconds - 30
   end
+
+  def seek_opponent(opponents)
+    closest = opponents.first
+    dist = distance(closest.x, closest.y, @x, @y)
+    opponents.each do |tar|
+      new_dist = distance(tar.x, tar.y, @x, @y)
+      if new_dist < dist
+        closest = tar
+        dist = new_dist
+      end
+    end
+    return closest
+  end
+
   def go_left
     @velocity_x = -@speed
   end
@@ -664,15 +867,37 @@ class Player2 < Chingu::GameObject
     after(500) {Smog.create(:x=>@x,:y=>@y)}
     after(600) {Smog.create(:x=>@x,:y=>@y)}
   end
+  def damage
+    puts "damage"
+    @health -= 1
+    @x += 10
+    after(30) { @y += 10 }
+    after(60) { @x -= 10 }
+    after(90) { @y -= 10 }
+    after(120) { @x += 10 }
+    after(150) { @x -= 10 }
+    after(180) { @x -= 10 }
+    after(210) { @x += 10 }
+#    after(10) { @y += 5 }
+  end
 
+  def update_health_bar
+    @health_bar.update
+  end
   def update_face
     @eyes.update
     @mouth.update
   end
+  def update_box
+    if @selected_box != nil
+      @selected_box.x = @x
+      @selected_box.y = @y
+    end
+  end
 
   def update
-    self.factor_y = @squeeze_y
-    self.factor_x = hit_wobble_factor * @direction
+    self.factor_y *= @squeeze_y
+    self.factor_x = 0.7 * hit_wobble_factor * @direction
     @squeeze_y = 1.0
     if @stun == true
       @speed = 0
@@ -685,6 +910,8 @@ class Player2 < Chingu::GameObject
     @velocity_x *= 0.25
     @velocity_y *= 0.25
     update_face
+    update_box
+    update_health_bar
     # Particles
     if @mist == false
       if @velocity_x < 0.1 && @velocity_x > -0.1 && @velocity_y < 0.1 && @velocity_y > -0.1
@@ -706,7 +933,7 @@ class Player2 < Chingu::GameObject
             :mode => :additive,
             :fade_rate => -10,
 #            :angle => @angle,
-            :factor => 1.7,
+            :factor => 1.2,
             :velocity_x => @part_vel_x,
             :velocity_y => @part_vel_y,
             :zorder => Zorder::Main_Character_Particles)
@@ -724,6 +951,7 @@ class Player2 < Chingu::GameObject
       super
       @eyes.draw
       @mouth.draw
+      @health_bar.draw
     end
   end
 end

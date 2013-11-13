@@ -3,8 +3,8 @@ class Mouth
   
   def initialize parent
     @parent = parent
-    @image = Gosu::Image["players/mouth.png"]
-    @mouth_closed = Gosu::Image["players/mouth_closed.png"]
+    @image = Gosu::Image["players/mouth_2.png"]
+    @mouth_closed = Gosu::Image["players/mouth_closed_2.png"]
     @x = 0
     @y = 0
     @mood = 0
@@ -12,8 +12,40 @@ class Mouth
   end
   
   def update
-    @x = @parent.x + 3 * @parent.direction
-    @y = @parent.y - 3
+    @x = @parent.x + 1 * @parent.direction
+    @y = @parent.y - 2
+#    if @parent.health > -2
+#      @mood = @parent.health/10
+#    else
+#      @mood = -0.2
+#    end
+    @scale_y = -2.3 + @parent.health / 3.0
+#    += (@mood-@scale_y)*0.1
+  end
+  
+  def draw
+    @mouth_closed.draw_rot @x, @y, Zorder::Face, 0, 0.5, 0.5, 1
+    @image.draw_rot @x, @y, Zorder::Face, 0, 0.5, 0.5, 1, @scale_y
+  end
+end
+
+
+class Mouth2
+  attr_accessor :scale_y, :mood
+  
+  def initialize parent
+    @parent = parent
+    @image = Gosu::Image["players/mouth_2.png"]
+    @mouth_closed = Gosu::Image["players/mouth_closed_2.png"]
+    @x = 0
+    @y = 0
+    @mood = 0
+    @scale_y = 0
+  end
+  
+  def update
+    @x = @parent.x + 1 * @parent.direction
+    @y = @parent.y - 2
     puck = @parent.game_state.puck
     case @parent.direction
     when -1

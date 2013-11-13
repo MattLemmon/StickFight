@@ -6,7 +6,7 @@ class FieldChange < Chingu::GameState
   trait :timer
 
   def setup
-    self.input = { :p=>Pause, :right_shift=>Field, :left_shift=>Field } #, [:enter, :return] => Field }
+    self.input = { :p=>Pause, :right_shift=>Arena1, :left_shift=>Arena1 } #, [:enter, :return] => Field }
     $window.caption = "StickBall - Prepare for Round #{$round}"
 
     @player1 = Player1Clone.create(:x=> $pos1_x, :y=> $pos1_y)
@@ -16,7 +16,7 @@ class FieldChange < Chingu::GameState
       @player2.input = {:holding_a=>:go_left,:holding_d=>:go_right,:holding_w=>:go_up,:holding_s=>:go_down}
     end
 
-    @chant = "Loading Round #{$round}"
+    @chant = "Press Shift for Round #{$round}"
 
     $music.volume = 0.0
     loading
@@ -67,7 +67,7 @@ class FieldChange < Chingu::GameState
     after(1000) { @chant_text.text = "#{@chant}" }
     after(1600) { @chant_text.text = "" }
     after(2200) { @chant_text.text = "#{@chant}" }
-    after(1800) { @chant_text.text = "" }
+    after(2800) { @chant_text.text = "" }
     after(3400) { @chant_text.text = "#{@chant}" }
     after(4000) { @chant_text.text = "" }
     after(4600) { @chant_text.text = "#{@chant}" }
@@ -75,7 +75,7 @@ class FieldChange < Chingu::GameState
     after(4600) { @chant_text.text = "#{@chant}" }
     after(5200) { @chant_text.text = "" }
     after(5800) { @chant_text.text = "#{@chant}" }
-    after(6600) { push_game_state(Field) }
+    after(6600) { push_game_state(Arena1) }
   end
 
   def update

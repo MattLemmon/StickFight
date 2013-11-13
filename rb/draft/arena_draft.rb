@@ -1,7 +1,7 @@
 
 require_relative 'lense_flares'
 
-
+=begin
 class Arena < Chingu::GameState
   trait :timer
   def setup
@@ -34,18 +34,18 @@ class Arena < Chingu::GameState
     $health2 = 10
     $start_health1 = 10
     $start_health2 = 10
-    after(200){push_game_state(FieldChange)}
+    after(200){push_game_state(RoundChange)}
   end
 end
-
+=end
 
 
 #
-# FIELD GAMESTATE
+# ARENA 1 GAMESTATE
 #
-class Field < Chingu::GameState    
+class Arena1 < Chingu::GameState    
   trait :timer
-  attr_reader :puck
+  attr_reader :puck, :player1, :player2, :peons1, :peons2
 
   def initialize
     super
@@ -60,7 +60,7 @@ class Field < Chingu::GameState
     @drop_vel_y = 0
 
     self.input = { :p => Pause,
-#                   :space => :fire,
+                   :space => :attack,
                    :j => :decrease_volume,
                    :l => :increase_volume,
                    :i => :increase_volume,
@@ -68,7 +68,11 @@ class Field < Chingu::GameState
                    :holding_right_ctrl=>:chest_bump1,
                    :holding_left_ctrl=>:chest_bump2,
                    :right_shift=>:right_attack,
-                   :left_shift=>:left_attack
+                   :left_shift=>:left_attack,
+                   :left_mouse_button => :start_selecting, 
+                   :released_left_mouse_button => :stop_selecting,
+                   :right_mouse_button => :go_to_destination,
+                   :released_right_mouse_button => :stop_attacking
                  }
 
     $window.caption = "Stick Ball - Round #{$round}"
@@ -78,6 +82,8 @@ class Field < Chingu::GameState
     super
     $health1 = $start_health1
     $health2 = $start_health2
+    $destination_x = 400
+    $destination_y = 300
 
     @seconds = 30
 
@@ -121,7 +127,7 @@ class Field < Chingu::GameState
       @player1.input = {:holding_left=>:go_left,:holding_right=>:go_right,:holding_up=>:go_up,:holding_down=>:go_down} #:holding_right_ctrl=>:creep,
 #    end
 
-    @stick1 = Stick1.create(:x => @player1.x - 20, :y => @player1.y, :zorder => Zorder::Face)
+#    @stick1 = Stick1.create(:x => @player1.x - 20, :y => @player1.y, :zorder => Zorder::Face)
 
     @player2 = Player2.create(:x => $pos2_x, :y => $pos2_y, :zorder => Zorder::Main_Character)#(:x => $player_x, :y => $player_y, :angle => $player_angle, :zorder => Zorder::Main_Character)
 #    if $mode == "Versus"
@@ -129,6 +135,24 @@ class Field < Chingu::GameState
 #    end
 
     @stick2 = Stick2.create(:x => @player2.x + 20, :y => @player2.y, :zorder => Zorder::Face)
+
+   # Player1.create(:x => $pos1_x - 50, :y => $pos1_y - 50, :zorder => Zorder::Main_Character)
+  #  Player1.create(:x => $pos1_x - 50, :y => $pos1_y + 50, :zorder => Zorder::Main_Character)
+ #   Player1.create(:x => $pos1_x + 50, :y => $pos1_y + 50, :zorder => Zorder::Main_Character)
+#    Player1.create(:x => $pos1_x + 50, :y => $pos1_y - 50, :zorder => Zorder::Main_Character)
+#    @peons = Array.new(4) {Player1.create}
+
+    @peons1 = []
+    create_peons1
+
+    @peons2 = []
+    create_peons2
+
+#    Player2.create(:x => $pos2_x + 50, :y => $pos2_y - 50, :zorder => Zorder::Main_Character)
+ #   Player2.create(:x => $pos2_x + 50, :y => $pos2_y + 50, :zorder => Zorder::Main_Character)
+  #  Player2.create(:x => $pos2_x - 50, :y => $pos2_y - 50, :zorder => Zorder::Main_Character)
+   # Player2.create(:x => $pos2_x - 50, :y => $pos2_y + 50, :zorder => Zorder::Main_Character)
+
 
     if $mode == "Campaign"
       campaign_setup
@@ -163,6 +187,8 @@ class Field < Chingu::GameState
 
     $music.volume = 0.0
 
+    @selecting = false
+
     round_setup
 
     after(1000) { tock }
@@ -170,6 +196,101 @@ class Field < Chingu::GameState
     after(2400) { @transition = false }
 
 #    1.times { fire }
+  end
+
+  def create_peons1 # creates 15 characters (one of each) each time it is called 
+    @peons1 << Player1.create(:x=> @player1.x, :y=> @player1.y - 100, :zorder => Zorder::Main_Character)
+    @peons1 << Player1.create(:x=> @player1.x, :y=> @player1.y - 50, :zorder => Zorder::Main_Character)
+    @peons1 << Player1.create(:x=> @player1.x, :y=> @player1.y + 50, :zorder => Zorder::Main_Character)
+    @peons1 << Player1.create(:x=> @player1.x, :y=> @player1.y + 100, :zorder => Zorder::Main_Character)
+  end
+
+  def create_peons2 # creates 15 characters (one of each) each time it is called 
+    @peons2 << Player2.create(:x=> @player2.x, :y=> @player2.y - 100, :zorder => Zorder::Main_Character)
+    @peons2 << Player2.create(:x=> @player2.x, :y=> @player2.y - 50, :zorder => Zorder::Main_Character)
+    @peons2 << Player2.create(:x=> @player2.x, :y=> @player2.y + 50, :zorder => Zorder::Main_Character)
+    @peons2 << Player2.create(:x=> @player2.x, :y=> @player2.y + 100, :zorder => Zorder::Main_Character)
+  end
+
+
+  def attack
+    Player1.each do |player|
+      if player.selected == true
+        closest = player.seek_opponent(@peons2)
+        player.preattack
+        player.attack(closest)
+        after(1000){player.unattack}
+      end
+    end
+  end
+
+  def start_selecting
+    puts "start selecting"
+    $start_x = $window.mouse_x
+    $start_y = $window.mouse_y
+    puts "x = #{$window.mouse_x}"
+    puts "y = #{$window.mouse_y}"
+    @selecting = true #Selector.create
+  end
+  def stop_selecting
+    puts "stop selecting"
+    $stop_x = $window.mouse_x
+    $stop_y = $window.mouse_y
+    puts "x = #{$window.mouse_x}"
+    puts "y = #{$window.mouse_y}"
+    Player1.each do |player1|
+      player1.deselect
+      if player1.x <= $stop_x && player1.x >= $start_x
+        if player1.y <= $stop_y && player1.y >= $start_y
+          player1.select
+        end
+        if player1.y >= $stop_y && player1.y <= $start_y
+          player1.select
+        end
+      end
+      if @player1.x >= $stop_x && player1.x <= $start_x
+        if player1.y <= $stop_y && player1.y >= $start_y
+          player1.select
+        end
+        if player1.y >= $stop_y && player1.y <= $start_y
+          player1.select
+        end
+      end
+    end
+    Player2.each do |player2|
+      player2.deselect
+      if player2.x <= $stop_x && player2.x >= $start_x
+        if player2.y <= $stop_y && player2.y >= $start_y
+          player2.select
+        end
+        if player2.y >= $stop_y && player2.y <= $start_y
+          player2.select
+        end
+      end
+      if player2.x >= $stop_x && player2.x <= $start_x
+        if player2.y <= $stop_y && player2.y >= $start_y
+          player2.select
+        end
+        if player2.y >= $stop_y && player2.y <= $start_y
+          player2.select
+        end
+      end
+      @selecting = false #Selector.destroy_all
+    end
+  end
+  def go_to_destination
+    puts "go to destination"
+    $destination_x = $window.mouse_x
+    $destination_y = $window.mouse_y
+    Player1.each do |player1|
+      player1.going
+    end
+    Player2.each do |player2|
+      player2.going
+    end
+  end
+  def stop_attacking
+#    puts "stop attacking"
   end
 
   def campaign_setup
@@ -428,6 +549,48 @@ class Field < Chingu::GameState
       flare.y = star.y
     end
 
+    Player1.each_collision(Player1) do |player, player1|
+#      player.ungoing
+      if player1.x - $destination_x < 50 && player1.x - $destination_x > -50 && player1.y - $destination_y < 50 && player1.y - $destination_y > -50
+        player1.ungoing
+      end
+      if player.x > player1.x
+        player.velocity_x = 2
+        player1.velocity_x = -2
+      else
+        player.velocity_x = -2
+        player1.velocity_x = 2
+      end
+      if player.y > player1.y
+        player.velocity_y = 2
+        player1.velocity_y = -2
+      else
+        player.velocity_y = -2
+        player1.velocity_y = 2
+      end
+    end
+
+    Player2.each_collision(Player2) do |player, player2|
+#      player.ungoing
+      if player2.x - $destination_x < 50 && player2.x - $destination_x > -50 && player2.y - $destination_y < 50 && player2.y - $destination_y > -50
+        player2.ungoing
+      end
+      if player.x > player2.x
+        player.velocity_x = 2
+        player2.velocity_x = -2
+      else
+        player.velocity_x = -2
+        player2.velocity_x = 2
+      end
+      if player.y > player2.y
+        player.velocity_y = 2
+        player2.velocity_y = -2
+      else
+        player.velocity_y = -2
+        player2.velocity_y = 2
+      end
+    end
+
     Spell1.each do |spell|                   # SPELL 1 MOVEMENT
       if spell.y < @player2.y
         spell.velocity_y = 20.0
@@ -481,6 +644,8 @@ class Field < Chingu::GameState
         if spell.spell_type == "strike"
           player.damage
           $health1 -= 1
+          @health1_text.text = "#{$health1}"
+          @health1_text.x = 765 - @health1_text.width/2
         end
         spell.destroy
         after(300) { @spell2_hit = false }
@@ -501,6 +666,8 @@ class Field < Chingu::GameState
         if spell.spell_type == "strike"
           player.damage
           $health2 -= 1
+          @health2_text.text = "#{$health2}"
+          @health2_text.x = 38 - @health2_text.width/2
         end
         spell.destroy
         after(300) { @spell1_hit = false }
@@ -579,7 +746,8 @@ class Field < Chingu::GameState
         @bump = @bump_delay
         player.wobble
         puck.die!
-        @stick1.wiggle
+        player.wiggle_stick
+#        @stick1.wiggle
         if @bumping1 == true && $chest_bump1 == true
           #puts "Bump"                                # Chest Bump
           if puck.velocity_x > 0
@@ -793,6 +961,10 @@ class Field < Chingu::GameState
 
   def draw
     @lense_flares.draw
+    if @selecting == true
+      draw_rect([$start_x,$start_y,$window.mouse_x-$start_x,$window.mouse_y-$start_y], Color::WHITE, 10) #, :multiply)
+#      draw_rect(rect, color, zorder = 0, mode = :default)
+    end
     if $round == 2
       fill_gradient(:from => Color.new(0xFF00003B), :to => Color.new(0xFF252546), :orientation => :vertical)
     end
@@ -813,9 +985,9 @@ class Field < Chingu::GameState
 
     move_referee
     collision_check
-    @stick1.x = @player1.x - 30
-    @stick1.y = @player1.y
-    @stick2.x = @player2.x + 30
+#    @stick1.x = @player1.x - 20
+#    @stick1.y = @player1.y
+    @stick2.x = @player2.x + 20
     @stick2.y = @player2.y
     $pos1_x, $pos1_y = @player1.x, @player1.y
     $pos2_x, $pos2_y = @player2.x, @player2.y
@@ -840,42 +1012,42 @@ class Field < Chingu::GameState
         end
       end
       if $difficulty == "Normal" || $difficulty == "Hard" || $difficulty == "Insane"
-        if @player2.y > @puck.y && rand(3) == 1
-          @player2.go_up
-        end
-        if @player2.y < @puck.y && rand(3) == 1
-          @player2.go_down
-        end
-        if @player1.y > @puck.y && rand(3) == 1
-          @player1.go_up
-        end
-        if @player1.y < @puck.y && rand(3) == 1
-          @player1.go_down
-        end
+#        if @player2.y > @puck.y && rand(3) == 1
+#          @player2.go_up
+#        end
+#        if @player2.y < @puck.y && rand(3) == 1
+#          @player2.go_down
+#        end
+#        if @player1.y > @puck.y && rand(3) == 1
+#          @player1.go_up
+#        end
+#        if @player1.y < @puck.y && rand(3) == 1
+#          @player1.go_down
+#        end
       end
       if $difficulty == "Normal"
-        if rand(100) == 1
+#        if rand(100) == 1
 #          if rand(5) == 1
 #            $spell2 = "stun"
 #          elsif rand(4) == 1
 #            $spell2 = "mist"
 #          else
-            $spell2 = "strike"
+#            $spell2 = "strike"
 #          end
-          @player2.cast_spell
-          @stick2.wiggle
-        end
-        if rand(100) == 1
+#          @player2.cast_spell
+#          @stick2.wiggle
+#        end
+#        if rand(100) == 1
 #          if rand(5) == 1
 #            $spell1 = "stun"
 #          elsif rand(4) == 1
 #            $spell1 = "mist"
 #          else
-            $spell1 = "strike"
+#            $spell1 = "strike"
 #          end
-          @player1.cast_spell
-          @stick1.wiggle
-        end
+#          @player1.cast_spell
+#          @player1.wiggle_stick
+#        end
       end
       if $difficulty == "Hard"
         if rand(300) == 1

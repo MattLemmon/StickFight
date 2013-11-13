@@ -5,11 +5,11 @@
 class Beginning < Chingu::GameState
   trait :timer
   def setup
-    self.input = { :esc => :exit,  [:right_shift, :left_shift] => OpeningCredits } #, :p => Pause, :r => lambda{current_game_state.setup} }
+    self.input = { :esc => :exit,  [:right_shift, :left_shift] => Arena } #, :p => Pause, :r => lambda{current_game_state.setup} }
     $music = Song["audio/guitar_solo.ogg"]
     $music.volume = 0.6
     after(2) { $music.play(true) }
-    after(4) { push_game_state(PreIntro) }#Chingu::GameStates::FadeTo.new(PreIntro.new, :speed => 20)) }
+    after(4) { push_game_state(Arena) }#Chingu::GameStates::FadeTo.new(PreIntro.new, :speed => 20)) }
   end
 end
 

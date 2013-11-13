@@ -1,4 +1,33 @@
 
+#
+# HEALTH BAR
+#
+class HealthBar
+  def initialize parent
+    @parent = parent
+    @health_bar = Image["gui/health_bar.png"]
+    @health_red = Image["gui/health_red.png"]
+    @health_green = Image["gui/health_green.png"]
+  end
+  def update
+    @x = @parent.x
+    @y = @parent.y + 30
+  end
+
+  def draw
+    @health_bar.draw(@x, @y, Zorder::GUI_Bkgrd)
+    if @parent.health > 4
+      for i in 1..@parent.health
+        @health_green.draw(@x-12+2*i, @y, Zorder::GUI)
+      end
+    else
+      for i in 1..@parent.health
+        @health_red.draw(@x-12+2*i, @y, Zorder::GUI)
+      end
+    end
+  end
+end
+
 
 #
 #  GUI1 CLASS             ( RIGHT PLAYER )

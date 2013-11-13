@@ -14,7 +14,7 @@ require_relative 'rb/ending'
 require_relative 'rb/backgrounds'
 require_relative 'rb/round_change'
 require_relative 'rb/crowd'
-
+require_relative 'rb/arena'
 
 module Zorder  # define some frequently used Zorders
   GUI = 400
