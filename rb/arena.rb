@@ -19,7 +19,10 @@ class Arena < Chingu::GameState
 
                    :left_mouse_button => :start_selecting, 
                    :released_left_mouse_button => :stop_selecting,
-                   :right_mouse_button => :go_to_destination
+                   :right_mouse_button => :go_to_destination,
+
+                   :b => :build_farm,
+                   :v => :build_rampart
                  }
 
     viewport.lag  = 0.22
@@ -49,15 +52,13 @@ class Arena < Chingu::GameState
     game_objects.destroy_all
     Player1.destroy_all
     Player2.destroy_all
-#    EyesLeft.destroy_all
-#    EyesRight.destroy_all
 
     if @lumber1_text != nil; @lumber1_text.destroy; end # if it exists, destroy it
     if @lumber2_text != nil; @lumber2_text.destroy; end # if it exists, destroy it
 
 
     @player1 = Player1.create(:x => $pos1_x, :y => $pos1_y, :zorder => Zorder::Main_Character)#(:x => $player_x, :y => $player_y, :angle => $player_angle, :zorder => Zorder::Main_Character)
-    @player1.input = {:f=>:build_farm,:r=>:build_rampart,:holding_left=>:go_left,:holding_right=>:go_right,:holding_up=>:go_up,:holding_down=>:go_down} #:holding_right_ctrl=>:creep,
+    @player1.input = {:holding_left=>:go_left,:holding_right=>:go_right,:holding_up=>:go_up,:holding_down=>:go_down} #:holding_right_ctrl=>:creep,
 
     @player2 = Player2.create(:x => $pos2_x, :y => $pos2_y, :zorder => Zorder::Main_Character)#(:x => $player_x, :y => $player_y, :angle => $player_angle, :zorder => Zorder::Main_Character)
     @player2.input = {:holding_a=>:go_left,:holding_d=>:go_right,:holding_w=>:go_up,:holding_s=>:go_down} #:holding_left_ctrl=>:creep,
@@ -67,7 +68,6 @@ class Arena < Chingu::GameState
 
     @peons2 = []
     create_peons2
-
 
     if $mode == "Campaign"
       campaign_setup
@@ -101,8 +101,6 @@ class Arena < Chingu::GameState
     after(1000) { tock }
 
     after(2000) { change_track }
-
-#    1.times { fire }
   end
 
   def create_peons1 # creates 15 characters (one of each) each time it is called 
@@ -119,7 +117,6 @@ class Arena < Chingu::GameState
     @peons2 << Player2.create(:x=> @player2.x, :y=> @player2.y + 100, :zorder => Zorder::Main_Character)
   end
 
-
   def attack
     Player1.each do |player|
       if player.selected == true
@@ -135,6 +132,15 @@ class Arena < Chingu::GameState
         player.attack(closest)
       end
     end
+  end
+
+  def build_farm
+    Player1.each do |player| ; if player.selected == true; player.build_farm; end; end
+    Player2.each do |player| ; if player.selected == true; player.build_farm; end; end
+  end
+  def build_rampart
+    Player1.each do |player| ; if player.selected == true; player.build_rampart; end; end
+    Player2.each do |player| ; if player.selected == true; player.build_rampart; end; end
   end
 
   def start_selecting
@@ -203,33 +209,6 @@ class Arena < Chingu::GameState
     end
   end
 
-  def campaign_setup
-    @player1.x = 750
-    @player2.x = 50
-    if $difficulty == "Easy"
-      $speed2 = 2.8
-      $lumber2 = 10
-    end
-    if $difficulty == "Normal"
-      $kick1 = true
-      $speed1 = 8
-      $lumber1 = 15
-      $kick2 = true
-      $speed2 = 8
-      $lumber2 = 15
-    end
-    if $difficulty == "Hard"
-      $speed2 = 10
-      $kick2 = true
-      $lumber2 = 30
-    end
-    if $difficulty == "Insane"
-      $speed2 = 12
-      $kick2 = true
-      $lumber2 = 40
-    end
-  end
-
   def increase_volume;  $music.volume += 0.1;  end
   def decrease_volume;  $music.volume -= 0.1;  end
 
@@ -247,13 +226,11 @@ class Arena < Chingu::GameState
     end
   end
 
-
   def tock
     after(1000) { @seconds += 1
       @timer_text.text = "Seconds :#{@seconds}"
       tock }
   end
-
 
   def screen_shake
     blink_flare

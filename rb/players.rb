@@ -230,6 +230,12 @@ class Player2 < Chingu::GameObject
     @health = $start_health2
     @selected = false
   end
+  def build_farm
+    Farm.create(:x=>@x, :y=>@y)
+  end
+  def build_rampart
+    Rampart.create(:x=>@x, :y=>@y)
+  end
   def select
     @selected_box = SelectedBox.create(:x=>@x,:y=>@y,:zorder=>10)
     @selected = true

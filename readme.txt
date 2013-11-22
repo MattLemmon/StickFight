@@ -16,7 +16,9 @@ _________________________________________________________________
 Mouse:    Left click and drag to select
           Right click to move
 
-Spaebar:  All selected players attack the nearest opponent
+Spaebar:  Selected players attack the nearest opponent
+
+V, B:     Selected players build buildings
 
 ASDW:     Move this player around to see the viewport environment
 
