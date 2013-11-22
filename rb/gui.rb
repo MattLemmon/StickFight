@@ -1,3 +1,56 @@
+class MiniMapGenerator
+  attr_reader :image
+  def initialize(area, enemies, ship)
+    #area = [play area width, play area height]
+    #objects = [Planets, Stars]
+    @area    = area
+#    @planets = planets
+    @enemies = enemies
+    @ship    = ship
+    @image   = TexPlay.create_image($window, area[0]/100, area[1]/100)#, caching: false)
+    generate_image
+    return @image
+  end
+
+  def generate_image
+#    @planets.each do |planet|
+#      if planet.habitable
+#        @image.pixel(planet.x/100, planet.y/100, color: :blue) if planet.base.nil?
+#        @image.pixel(planet.x/100, planet.y/100, color: :cyan) unless planet.base.nil?
+#      else
+#        @image.pixel(planet.x/100, planet.y/100, color: :yellow)
+#      end
+#    end
+    @enemies.each do |enemy|
+      @image.pixel(enemy.x/100, enemy.y/100, color: :red)
+    end
+    @ship.each do |ship|
+      @image.pixel(ship.x/100, ship.y/100, color: :green)
+    end
+  end
+end
+
+class MiniMap < Chingu::GameObject
+  def setup
+    @tick = 0
+    self.x = $window.width-(30*5)
+    self.y = 100
+    self.zorder = 999
+#    @ship = Ship.all.first
+    # MiniMapGenerator.new([3000,3000], Planet.all, @ship)
+  end
+
+  def update
+    self.factor = 5
+    if @tick >= 10
+      map = MiniMapGenerator.new([3000,3000], Player2.all, Player1.all)
+      self.image = map.image.retrofy
+      @tick = 0
+    end
+    @tick+=1
+  end
+end
+
 
 #
 # HEALTH BAR

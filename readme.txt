@@ -2,13 +2,9 @@ _________________________________________________________________
 
                          S T I C K F I G H T     
 
+Requires Ruby
 
-To run from source code:
-
- (requires Ruby)
- (requires Bundler `gem install bundler`)
- (Mac OSX additionally requires Xcode 4+)
-
+$ gem install bundler
 $ bundle install
 $ ruby main.rb
 
@@ -16,42 +12,15 @@ Detailed installation instructions are included below.
 _________________________________________________________________
 
                            CONTROLS
-Esc - Exit
 
-           Left                              Right
-          Player                             Player
-                           Pause - P
-             W                                 ^
-                                               |
-        A    S    D                       <--  v  -->
+Mouse:    Left click and drag to select
+          Right click to move
 
-Left Shift                                            Right Shift
+Spaebar:  All selected players attack the nearest opponent
 
-Left Ctrl                                             Right Ctrl
+ASDW:     Move this player around to see the viewport environment
 
-Play against an opponent, or against the CPU. There are four CPU 
-difficulty levels. Each match is best two rounds out of three.
-
-Collect five stars to receive a Power-Up.
-
-Ctrl is used to slow the ball, after the Bump Power-Up has been obtained.
-
-Shift is used to cast spells, after they are picked up.
-
-The three main Power-Ups are:
-
-  -  Speed     faster player movement
-  -  Bump      slows ball when holding Ctrl
-  -  Kick      player kicks ball harder
-
-The two additional Power-Ups are spells which can be cast with the 
-shift button:
-
-  -  Stun      stuns opponent for a few seconds
-  -  Mist      makes opponent disappear for a few seconds
-
-
-Extra Controls:  I J K L => music volume controls during rounds
+Extra Controls:  I J K L => music controls
 
                  P => from the Pause menu you can return to the Main Menu
 
@@ -61,11 +30,11 @@ _________________________________________________________________
 
                     QUICK INSTALL (Requires Ruby)
 
-  $ git clone git@github.com:MattLemmon/StickBall.git
-  $ cd StickBall
+  $ git clone git@github.com:MattLemmon/StickFight.git
+  $ cd StickFight
   $ gem install bundler      # (if needed)
-  StickBall$ bundle install
-  Stickball$ ruby main.rb
+  StickFight$ bundle install
+  StickFight$ ruby main.rb
 
 of if you prefer manual gem install (instead of bundle):
 
@@ -73,7 +42,7 @@ of if you prefer manual gem install (instead of bundle):
   $ gem install chingu
 
 If you don't have git installed, you can copy the repo manually at
-https://github.com/mattlemmon/StickBall by clicking on the "Download
+https://github.com/mattlemmon/StickFight by clicking on the "Download
 Zip" link at the right side of the screen toward the bottom.
 
 _________________________________________________________________
@@ -104,11 +73,11 @@ if you want.
 
 Next you should:
 
-Clone from github: https://github.com/mattlemmon/StickBall.git
+Clone from github: https://github.com/mattlemmon/StickFight.git
 (If you do not have git installed, just click on the "Download
 Zip" link - right side of screen toward the bottom.)
 
-Then `cd` into the StickBall folder. Install bundler by executing
+Then `cd` into the StickFight folder. Install bundler by executing
 `gem install bundler`. Then execute `bundle install`. This will install
 two gems: Gosu (version 0.7.48), Chingu, and possibly a few dependencies as well.
 
@@ -117,7 +86,7 @@ Once the gems are installed, execute:
 $ ruby main.rb
 
 If you checked the boxes during install, you should also be able to 
-simply double-click on the `main.rb` file in the StickBall folder.
+simply double-click on the `main.rb` file in the StickFight folder.
 
 Enjoy!
 
@@ -125,7 +94,7 @@ Enjoy!
 MAC:
 
 Note: Gosu works on Mac OSX 10.5, 10.6, 10.7, and 10.8. It does
-not (yet) work on 10.9 Mavericks.
+NOT (yet) work on 10.9 Mavericks.
 
 If you are on a Mac, you will need Xcode 4+ or DeveloperTools.
 Xcode and DeveloperTools are included on the Mac OSX install DVD.
@@ -155,16 +124,16 @@ $ gem install bundler
 
 Next you should:
 
-Clone from github: https://github.com/mattlemmon/StickBall.git
+Clone from github: https://github.com/mattlemmon/StickFight.git
 (If you do not have git installed, just click on the "Download
 Zip" link - right side of screen toward the bottom.)
 
-Once you have copied the git repo, `cd` into the StickBall folder
+Once you have copied the git repo, `cd` into the StickFight folder
 and execute `bundle install`. This will install two gems: Gosu (version 0.7.48)
 and Chingu, and possibly a few dependencies as well.
 
 
-Then `cd` into the StickBall folder. Install bundler by executing
+Then `cd` into the StickFight folder. Install bundler by executing
 `gem install bundler`. Then execute `bundle install`. This will install
 two gems: Gosu (version 0.7.48), Chingu, and possibly a few dependencies as well.
 
@@ -197,11 +166,11 @@ https://github.com/jlnr/gosu/wiki/Getting-Started-on-Linux
 
 Next you should:
 
-Clone from github: https://github.com/mattlemmon/StickBall.git
+Clone from github: https://github.com/mattlemmon/StickFight.git
 (If you do not have git installed, just click on the "Download
 Zip" link - right side of screen toward the bottom.)
 
-Then `cd` into the StickBall folder and execute `bundle install`.
+Then `cd` into the StickFight folder and execute `bundle install`.
 This will install two gems: Gosu and Chingu, and possibly a few
 dependencies as well.
 

@@ -1,22 +1,24 @@
 
 require 'chingu'
 require 'gosu'
+require 'texplay'
 #require 'ashton'
 include Chingu
 include Gosu
 
-require_relative 'rb/field'
+#require_relative 'rb/field'
 require_relative 'rb/players'
 require_relative 'rb/objects'
 require_relative 'rb/gui'
 require_relative 'rb/beginning'
 require_relative 'rb/ending'
-require_relative 'rb/backgrounds'
-require_relative 'rb/round_change'
-require_relative 'rb/crowd'
+#require_relative 'rb/backgrounds'
+#require_relative 'rb/round_change'
+#require_relative 'rb/crowd'
 require_relative 'rb/arena'
+require_relative 'rb/buildings'
 
-module Zorder  # define some frequently used Zorders
+module Zorder
   GUI = 400
   GUI_Bkgrd = 399
   Text = 300
@@ -44,12 +46,12 @@ class Pause < Chingu::GameState
     super
     @title = Chingu::Text.create(:text=>"PAUSED (press 'P' to un-pause)", :y=>400, :size=>30, :color => Color.new(0xFF00FF00), :zorder=>1000 )
     @title.x = 400 - @title.width/2
-    @t2 = Chingu::Text.create(:text=>"press 'M' to return to Main Menu", :y=>450, :size=>30, :color => Color.new(0xFF00FF00), :zorder=>1000 )
+    @t2 = Chingu::Text.create(:text=>"press 'R' to restart", :y=>450, :size=>30, :color => Color.new(0xFF00FF00), :zorder=>1000 )
     @t2.x = 400 - @t2.width/2
     @t3 = Chingu::Text.create(:text=>"press 'esc' to exit", :y=>500, :size=>30, :color => Color.new(0xFF00FF00), :zorder=>1000 )
     @t3.x = 400 - @t3.width/2
 
-    self.input = { :p => :un_pause, :m => PreIntro }
+    self.input = { :p => :un_pause, :r => Beginning }
   end
   def un_pause
     pop_game_state(:setup => false)    # Return the previous game state, dont call setup()
@@ -67,42 +69,42 @@ end
 #
 class GameWindow < Chingu::Window
   def initialize
-    super(800,600,false)
+    super(1000,800,false)
     $round = 1
     $intro = true
     $pos1_x, $pos1_y = 740, 300
     $pos2_x, $pos2_y = 60, 300
-    $max_x = 815
-    $max_y = 615
+    $max_x = 3015
+    $max_y = 3015
     $scr_edge = 15
     $image1 = "boy"
     $image2 = "boy"
-    $chime = Sound["media/audio/pickup_chime.ogg"]
-    $chime_right = Sound["media/audio/chime_right.ogg"]
-    $chime_left = Sound["media/audio/chime_left.ogg"]
+#    $chime = Sound["media/audio/pickup_chime.ogg"]
+#    $chime_right = Sound["media/audio/chime_right.ogg"]
+#    $chime_left = Sound["media/audio/chime_left.ogg"]
     $click = Sound["media/audio/keypress.ogg"]
-    $click_right = Sound["media/audio/click_right.ogg"]
-    $click_left = Sound["media/audio/click_left.ogg"]
+#    $click_right = Sound["media/audio/click_right.ogg"]
+#    $click_left = Sound["media/audio/click_left.ogg"]
     #$star_grab = Sound["media/audio/star_pickup.ogg"]
-    $star_grab_right = Sound["media/audio/star_grab_right.ogg"]
-    $star_grab_left = Sound["media/audio/star_grab_left.ogg"]
-    $power_up_left = Sound["media/audio/power_up_left.ogg"]
-    $power_up_right = Sound["media/audio/power_up_right.ogg"]
-    $mist_grab_left = Sound["media/audio/mist_grab_left.ogg"]
-    $mist_grab_right = Sound["media/audio/mist_grab_right.ogg"]
-    $stun_grab_right = Sound["media/audio/stun_grab_right.ogg"]
-    $stun_grab_left = Sound["media/audio/stun_grab_left.ogg"]
-    $one_up_left = Sound["media/audio/1up_left.ogg"]
-    $one_up_right = Sound["media/audio/1up_right.ogg"]
+#    $star_grab_right = Sound["media/audio/star_grab_right.ogg"]
+#    $star_grab_left = Sound["media/audio/star_grab_left.ogg"]
+#    $power_up_left = Sound["media/audio/power_up_left.ogg"]
+#    $power_up_right = Sound["media/audio/power_up_right.ogg"]
+#    $mist_grab_left = Sound["media/audio/mist_grab_left.ogg"]
+#    $mist_grab_right = Sound["media/audio/mist_grab_right.ogg"]
+#    $stun_grab_right = Sound["media/audio/stun_grab_right.ogg"]
+#    $stun_grab_left = Sound["media/audio/stun_grab_left.ogg"]
+#    $one_up_left = Sound["media/audio/1up_left.ogg"]
+#    $one_up_right = Sound["media/audio/1up_right.ogg"]
     $zapped = Sound["media/audio/magical_zap_by_qubodup.ogg"]
     $stunned = Sound["media/audio/stunned.ogg"]
     $misted = Sound["media/audio/misted.ogg"]
-    #$spell_cast = Sound["media/audio/magic_fireball_by_joelaudio.ogg"]
-    $spell_cast1 = Sound["media/audio/spell_cast_right.ogg"]
-    $spell_cast2 = Sound["media/audio/spell_cast_left.ogg"]
+    $spell_cast = Sound["media/audio/magic_fireball_by_joelaudio.ogg"]
+#    $spell_cast1 = Sound["media/audio/spell_cast_right.ogg"]
+#    $spell_cast2 = Sound["media/audio/spell_cast_left.ogg"]
     $bang = Sound["media/audio/bang.ogg"]
-    $bang1 = Sound["media/audio/bang1.ogg"]
-    $bang2 = Sound["media/audio/bang2.ogg"]
+#    $bang1 = Sound["media/audio/bang1.ogg"]
+#    $bang2 = Sound["media/audio/bang2.ogg"]
     $game_over = Sound["media/audio/game_over.ogg"]
     $guitar_fill = Sound["media/audio/guitar_fill.ogg"]
     #$guitar_riff = Sound["media/audio/guitar_riff_short.ogg"]
