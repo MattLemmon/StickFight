@@ -1,8 +1,6 @@
 DEBUG = false  # Set to true to see bounding circles used for collision detection
 
 require_relative 'face'
-#require_relative 'eyes'
-
 
 #
 #  PLAYER 1 CLASS

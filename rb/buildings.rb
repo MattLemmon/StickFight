@@ -6,6 +6,7 @@ class Farm < Chingu::GameObject
     after(2000) {@image = Image["buildings/farm.png"]}
   end
 end
+
 class Rampart < Chingu::GameObject
   trait :timer
   def setup
